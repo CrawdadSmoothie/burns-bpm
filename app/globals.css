@@ -1,0 +1,307 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: #100f0d;
+    color: #f0ede8;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      "Helvetica Neue", Arial, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(240, 237, 232, 0.1);
+    border-radius: 99px;
+  }
+}
+
+@layer utilities {
+  /* Surfaces */
+  .bg-surface   { background-color: #100f0d; }
+  .bg-surface-1 { background-color: #181714; }
+  .bg-surface-2 { background-color: #1f1e1b; }
+  .bg-surface-3 { background-color: #272521; }
+  .bg-surface-4 { background-color: #302e29; }
+
+  /* Borders */
+  .border-warm  { border-color: rgba(240,237,232,0.08); }
+
+  /* Text */
+  .text-warm         { color: #f0ede8; }
+  .text-warm-muted   { color: rgba(240,237,232,0.4); }
+  .text-warm-subtle  { color: rgba(240,237,232,0.22); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-fadeIn {
+  animation: fadeSlideUp 0.25s ease-out forwards;
+}
+
+.animate-pulse-dot {
+  animation: pulseDot 1.8s ease-in-out infinite;
+}
+
+/* ── Flame layers ─────────────────────────────── */
+
+@keyframes flameLick1 {
+  0%, 100% { transform: scaleX(1)    scaleY(1)    rotate(0deg);  opacity: 0.85; }
+  30%      { transform: scaleX(0.88) scaleY(1.12) rotate(-2.5deg); opacity: 1;  }
+  65%      { transform: scaleX(1.1)  scaleY(0.93) rotate(3deg);  opacity: 0.72; }
+}
+
+@keyframes flameLick2 {
+  0%, 100% { transform: scaleX(1)    scaleY(1)    rotate(1deg);  opacity: 0.9; }
+  40%      { transform: scaleX(0.85) scaleY(1.18) rotate(4deg);  opacity: 1;   }
+  72%      { transform: scaleX(1.14) scaleY(0.88) rotate(-3deg); opacity: 0.75; }
+}
+
+@keyframes flameLick3 {
+  0%, 100% { transform: scaleX(1)    scaleY(1)    rotate(-1deg); opacity: 0.92; }
+  35%      { transform: scaleX(0.82) scaleY(1.22) rotate(-5deg); opacity: 1;    }
+  68%      { transform: scaleX(1.18) scaleY(0.84) rotate(5deg);  opacity: 0.8;  }
+}
+
+.flame-outer {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  translate: -50% 0;
+  width: 100px;
+  height: 130px;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 85%,
+    rgba(210, 50, 20, 0.75) 0%,
+    rgba(232, 112, 90, 0.55) 45%,
+    transparent 75%);
+  filter: blur(14px);
+  transform-origin: center bottom;
+  animation: flameLick1 2.2s ease-in-out infinite;
+}
+
+.flame-mid {
+  position: absolute;
+  bottom: 38px;
+  left: 50%;
+  translate: -50% 0;
+  width: 66px;
+  height: 92px;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 85%,
+    rgba(240, 120, 40, 0.88) 0%,
+    rgba(232, 112, 90, 0.65) 50%,
+    transparent 75%);
+  filter: blur(8px);
+  transform-origin: center bottom;
+  animation: flameLick2 1.65s ease-in-out infinite;
+}
+
+.flame-inner {
+  position: absolute;
+  bottom: 46px;
+  left: 50%;
+  translate: -50% 0;
+  width: 38px;
+  height: 58px;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 85%,
+    rgba(255, 230, 120, 0.95) 0%,
+    rgba(255, 170, 60, 0.75) 45%,
+    transparent 75%);
+  filter: blur(4px);
+  transform-origin: center bottom;
+  animation: flameLick3 1.3s ease-in-out infinite;
+}
+
+/* ── Insanity-tier flames (extra layers, faster + larger) ─────────────────── */
+
+@keyframes flameLick4 {
+  0%, 100% { transform: scaleX(1)    scaleY(1)    rotate(0deg);   opacity: 0.9;  }
+  20%      { transform: scaleX(0.72) scaleY(1.32) rotate(-6deg);  opacity: 1;    }
+  55%      { transform: scaleX(1.28) scaleY(0.78) rotate(7deg);   opacity: 0.82; }
+}
+
+@keyframes flameLick5 {
+  0%, 100% { transform: scaleX(1)    scaleY(1)    rotate(2deg);   opacity: 0.95; }
+  30%      { transform: scaleX(0.68) scaleY(1.38) rotate(-8deg);  opacity: 1;    }
+  65%      { transform: scaleX(1.32) scaleY(0.72) rotate(6deg);   opacity: 0.78; }
+}
+
+.flame-insanity-outer {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  translate: -50% 0;
+  width: 150px;
+  height: 190px;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 85%,
+    rgba(255, 15, 0, 0.82) 0%,
+    rgba(245, 60, 20, 0.52) 38%,
+    transparent 70%);
+  filter: blur(20px);
+  transform-origin: center bottom;
+  animation: flameLick4 1.0s ease-in-out infinite;
+}
+
+.flame-insanity-mid {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  translate: -50% 0;
+  width: 72px;
+  height: 110px;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 85%,
+    rgba(255, 215, 60, 0.98) 0%,
+    rgba(255, 90, 15, 0.72) 42%,
+    transparent 70%);
+  filter: blur(5px);
+  transform-origin: center bottom;
+  animation: flameLick5 0.85s ease-in-out infinite;
+}
+
+/* ── Tilt Meter container state animations ───────────────────────────────── */
+
+@keyframes tiltHeating {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(232,184,77,0.10), 0 0 14px rgba(232,184,77,0.06); }
+  50%      { box-shadow: 0 0 0 1px rgba(232,184,77,0.22), 0 0 26px rgba(232,184,77,0.13); }
+}
+
+@keyframes tiltSimmer {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(232,112,90,0.16), 0 0 18px rgba(232,112,90,0.09); }
+  35%      { box-shadow: 0 0 0 1px rgba(232,112,90,0.32), 0 0 32px rgba(232,112,90,0.18); }
+  70%      { box-shadow: 0 0 0 1px rgba(232,112,90,0.20), 0 0 22px rgba(232,112,90,0.12); }
+}
+
+@keyframes tiltMeltdown {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,59,32,0.24),  0 0 22px rgba(255,59,32,0.13),  0 0 44px rgba(255,59,32,0.05); }
+  30%      { box-shadow: 0 0 0 1px rgba(255,89,40,0.42),  0 0 38px rgba(255,89,40,0.23),  0 0 70px rgba(255,89,40,0.10); }
+  65%      { box-shadow: 0 0 0 1px rgba(230,45,15,0.30),  0 0 26px rgba(230,45,15,0.16),  0 0 52px rgba(230,45,15,0.07); }
+}
+
+/* Base: supplies border-color transition for all states */
+.tilt-container {
+  border-color: rgba(240,237,232,0.07);
+  transition: border-color 0.8s ease, box-shadow 0.8s ease;
+}
+
+.tilt-stable {
+  border-color: rgba(124,200,160,0.15);
+  box-shadow: 0 0 0 1px rgba(124,200,160,0.06), 0 0 14px rgba(124,200,160,0.05);
+}
+
+.tilt-heating {
+  border-color: rgba(232,184,77,0.20);
+  animation: tiltHeating 3s ease-in-out infinite;
+}
+
+.tilt-simmer {
+  border-color: rgba(232,112,90,0.28);
+  animation: tiltSimmer 2s ease-in-out infinite;
+}
+
+.tilt-meltdown {
+  border-color: rgba(255,59,32,0.38);
+  animation: tiltMeltdown 1.4s ease-in-out infinite;
+}
+
+/* ── dB Meter container state animations ────────────────────────────────── */
+
+@keyframes dbTalking {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(90,181,232,0.10), 0 0 14px rgba(90,181,232,0.06); }
+  50%      { box-shadow: 0 0 0 1px rgba(90,181,232,0.22), 0 0 26px rgba(90,181,232,0.13); }
+}
+
+/* Base: border-color transition shared by all db states */
+.db-container {
+  border-color: rgba(240,237,232,0.07);
+  transition: border-color 0.8s ease, box-shadow 0.8s ease;
+}
+
+.db-muttering {
+  border-color: rgba(124,200,160,0.15);
+  box-shadow: 0 0 0 1px rgba(124,200,160,0.06), 0 0 14px rgba(124,200,160,0.05);
+}
+
+.db-talking {
+  border-color: rgba(90,181,232,0.20);
+  animation: dbTalking 3s ease-in-out infinite;
+}
+
+/* Reuse the tilt keyframes — same color palette */
+.db-loud {
+  border-color: rgba(232,184,77,0.20);
+  animation: tiltHeating 3s ease-in-out infinite;
+}
+
+.db-yelling {
+  border-color: rgba(232,112,90,0.28);
+  animation: tiltSimmer 2s ease-in-out infinite;
+}
+
+.db-screaming {
+  border-color: rgba(255,59,32,0.38);
+  animation: tiltMeltdown 1.4s ease-in-out infinite;
+}
+
+/* ── UNFILTERED RAGE activated banner ────────────────────────────────────── */
+
+@keyframes rageBannerAnim {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  14%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+  78%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+.animate-rage-banner {
+  animation: rageBannerAnim 2s ease-out forwards;
+}
+
+/* ── Peak callout animations ──────────────────────────────────────────────── */
+
+@keyframes peakCalloutAnim {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.95); }
+  15%  { opacity: 1; transform: translateY(0)   scale(1);    }
+  70%  { opacity: 1; transform: translateY(0)   scale(1);    }
+  100% { opacity: 0; transform: translateY(-4px) scale(0.95); }
+}
+
+@keyframes peakFlash {
+  0%   { opacity: 0;    transform: scale(0.85); }
+  20%  { opacity: 1;    transform: scale(1);    }
+  100% { opacity: 0;    transform: scale(1.05); }
+}
+
+.animate-peak-callout {
+  animation: peakCalloutAnim 600ms ease-out forwards;
+}
+
+.animate-peak-flash {
+  animation: peakFlash 600ms ease-out forwards;
+}
