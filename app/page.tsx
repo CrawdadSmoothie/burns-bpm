@@ -8,7 +8,9 @@ import SessionsAccordion from "@/components/SessionsAccordion";
 import TiltMeter from "@/components/TiltMeter";
 import DbMeter from "@/components/DbMeter";
 import DevControls from "@/components/DevControls";
+import BluetoothControl from "@/components/BluetoothControl";
 import { useFakeHeartRate, type HeartRatePoint } from "@/hooks/useFakeHeartRate";
+import { useBluetoothHeartRate } from "@/hooks/useBluetoothHeartRate";
 import { useSessionStats } from "@/hooks/useSessionStats";
 import { useMicLevel } from "@/hooks/useMicLevel";
 import { extractChartEvents } from "@/lib/chartEvents";
@@ -65,20 +67,58 @@ export default function Page() {
   const [sessionActive, setSessionActive] = useState(true);
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
 
+  // ── HR source mode — defaults to bluetooth; fake is dev/fallback ─────────
+  const [hrMode, setHrMode] = useState<"fake" | "bluetooth">("bluetooth");
+
   // ── Mic level — single tap shared by DbMeter and the session timeline ──────
   const { level: micLevel, permitted: micPermitted, requesting: micRequesting } =
     useMicLevel();
 
-  // Ref that useFakeHeartRate reads at each 1-second tick.
+  // Ref that sampling loops read at each tick.
   // Stays null until permission is granted so dbLevel is never fabricated.
   const dbLevelRef = useRef<number | null>(null);
   useEffect(() => {
     dbLevelRef.current = micPermitted ? micLevel : null;
   }, [micLevel, micPermitted]);
 
-  const { points, trigger } = useFakeHeartRate(sessionActive, dbLevelRef);
+  // ── Fake HR source (only active when hrMode === "fake") ───────────────────
+  const { points: fakePoints, trigger } =
+    useFakeHeartRate(sessionActive && hrMode === "fake", dbLevelRef);
+
+  // ── Bluetooth HR source ───────────────────────────────────────────────────
+  const bt = useBluetoothHeartRate();
+
+  // Keep a ref to the latest BT bpm so the sampling interval can read it
+  // without being in its dependency array (avoids restarting on each BPM tick).
+  const btBpmRef = useRef(0);
+  useEffect(() => { btBpmRef.current = bt.bpm; }, [bt.bpm]);
+
+  // Build the bluetooth session timeline at the same 1-second cadence as fake mode.
+  // Resets whenever a new BT session begins (sessionActive + connected).
+  const [btPoints, setBtPoints] = useState<HeartRatePoint[]>([]);
+  useEffect(() => {
+    if (hrMode !== "bluetooth" || !sessionActive || bt.status !== "connected") return;
+    setBtPoints([]);
+    const id = setInterval(() => {
+      const bpm = btBpmRef.current;
+      if (bpm > 0) {
+        setBtPoints((prev) => [
+          ...prev,
+          { timestamp: Date.now(), bpm, dbLevel: dbLevelRef.current },
+        ]);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [hrMode, sessionActive, bt.status]);
+
+  // ── Unified session data — swap source cleanly ────────────────────────────
+  const points     = hrMode === "fake" ? fakePoints : btPoints;
+  // For BT mode use the live bpm for immediate hero display; chart uses sampled points.
+  const currentBpm = hrMode === "bluetooth" && bt.status === "connected"
+    ? bt.bpm
+    : (points.length > 0 ? points[points.length - 1].bpm : 0);
+
   const stats       = useSessionStats(points);
-  const currentBpm  = points.length > 0 ? points[points.length - 1].bpm : 0;
   const startTime   = points.length > 0 ? points[0].timestamp : null;
   const chartEvents = useMemo(() => extractChartEvents(points), [points]);
 
@@ -137,8 +177,9 @@ export default function Page() {
   }, [points, stats]);
 
   const handleNewSession = useCallback(() => {
+    if (hrMode === "bluetooth") setBtPoints([]);
     setSessionActive(true);
-  }, []);
+  }, [hrMode]);
 
   const handleDeleteSession = useCallback((id: string) => {
     setSavedSessions((prev) => {
@@ -177,21 +218,30 @@ export default function Page() {
             </span>
           </div>
 
-          {/* Right: live/paused status */}
-          <div className="flex items-center gap-1.5">
+          {/* Right: live/paused status + HR source status */}
+          <div className="flex items-start gap-1.5">
+            {/* Pulse dot — aligns with the first line */}
             <span
-              className={`w-1.5 h-1.5 rounded-full ${sessionActive ? "animate-pulse-dot" : ""}`}
+              className={`w-1.5 h-1.5 rounded-full mt-[3px] shrink-0 ${sessionActive ? "animate-pulse-dot" : ""}`}
               style={{
                 background: sessionActive ? "#7cc8a0" : "rgba(240,237,232,0.2)",
                 boxShadow:  sessionActive ? "0 0 6px rgba(124,200,160,0.6)" : "none",
               }}
             />
-            <span
-              className="text-[11px] tracking-widest uppercase font-medium"
-              style={{ color: sessionActive ? "#7cc8a0" : "rgba(240,237,232,0.3)" }}
-            >
-              {sessionActive ? "Live" : "Paused"}
-            </span>
+            <div className="flex flex-col gap-0.5">
+              <span
+                className="text-[11px] tracking-widest uppercase font-medium leading-none"
+                style={{ color: sessionActive ? "#7cc8a0" : "rgba(240,237,232,0.3)" }}
+              >
+                {sessionActive ? "Live" : "Paused"}
+              </span>
+              <span
+                className="text-[9px] font-medium tracking-wide leading-none"
+                style={{ color: hrSourceStatusColor(hrMode, bt.status) }}
+              >
+                {hrSourceStatusLabel(hrMode, bt.status)}
+              </span>
+            </div>
           </div>
         </header>
 
@@ -288,8 +338,11 @@ export default function Page() {
 
       </div>
 
-      {/* ── Dev Controls ─────────────────────────────────────────────────── */}
-      <DevControls onCommand={trigger} />
+      {/* ── Floating controls (top-right) ────────────────────────────────── */}
+      <div className="fixed top-4 right-4 z-40 flex flex-col gap-2">
+        <BluetoothControl hrMode={hrMode} onModeChange={setHrMode} bt={bt} />
+        {hrMode === "fake" && <DevControls onCommand={trigger} />}
+      </div>
 
       {/* ── UNFILTERED RAGE banner ────────────────────────────────────────── */}
       {showRageBanner && (
@@ -317,6 +370,34 @@ export default function Page() {
       )}
     </main>
   );
+}
+
+// ─── HR source status helpers ────────────────────────────────────────────────
+
+type BtStatus = "idle" | "connecting" | "connected" | "disconnected" | "error" | "unavailable";
+
+function hrSourceStatusLabel(hrMode: "fake" | "bluetooth", btStatus: BtStatus): string {
+  if (hrMode === "fake") return "Using simulated data";
+  return {
+    idle:        "Monitor not connected",
+    connecting:  "Connecting monitor…",
+    connected:   "Monitor connected",
+    disconnected:"Monitor disconnected",
+    error:       "Connection failed",
+    unavailable: "Bluetooth unavailable",
+  }[btStatus];
+}
+
+function hrSourceStatusColor(hrMode: "fake" | "bluetooth", btStatus: BtStatus): string {
+  if (hrMode === "fake") return "rgba(240,237,232,0.22)";
+  return {
+    idle:        "rgba(240,237,232,0.22)",
+    connecting:  "#e8b84d",
+    connected:   "#7cc8a0",
+    disconnected:"rgba(240,237,232,0.22)",
+    error:       "#e8705a",
+    unavailable: "rgba(232,112,90,0.45)",
+  }[btStatus];
 }
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
