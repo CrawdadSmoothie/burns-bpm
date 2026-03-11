@@ -22,16 +22,16 @@ export interface BluetoothHeartRateResult {
 
 // ─── BLE Heart Rate Measurement parser ───────────────────────────────────────
 //
-// Characteristic format (Bluetooth SIG, Heart Rate Service):
+// Characteristic format (Bluetooth SIG, Heart Rate Service 0x180D):
 //   Byte 0 — Flags
 //     Bit 0: Heart Rate Value Format  0 = UINT8  1 = UINT16 (little-endian)
-//   Byte 1 (or 1–2) — BPM value
+//   Byte 1 (UINT8) or Bytes 1–2 (UINT16 LE) — BPM value
 //
 function parseHeartRate(view: DataView): number {
-  const flags  = view.getUint8(0);
-  const is16   = (flags & 0x01) === 1;
-  const bpm    = is16 ? view.getUint16(1, /*littleEndian=*/ true) : view.getUint8(1);
-  return bpm;
+  if (view.byteLength < 2) return 0;           // malformed frame guard
+  const flags = view.getUint8(0);
+  const is16  = (flags & 0x01) === 1;
+  return is16 ? view.getUint16(1, /*littleEndian=*/ true) : view.getUint8(1);
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -115,16 +115,35 @@ export function useBluetoothHeartRate(): BluetoothHeartRateResult {
       const characteristic = await service.getCharacteristic("heart_rate_measurement");
       characteristicRef.current = characteristic;
 
-      // Stable value-change handler
+      // Stable value-change handler.
+      // e.target.value holds the updated DataView per the Web Bluetooth spec,
+      // but some devices/browsers populate characteristic.value instead —
+      // check both so no notification is silently dropped.
       onValueChangedRef.current = (e: Event) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const view = (e.target as any).value as DataView | null;
-        if (view) setBpm(parseHeartRate(view));
+        const target = e.target as any;
+        const view: DataView | null =
+          target?.value ?? characteristicRef.current?.value ?? null;
+        if (view) {
+          const parsed = parseHeartRate(view);
+          if (parsed > 0) setBpm(parsed);
+        }
       };
       characteristic.addEventListener(
         "characteristicvaluechanged",
         onValueChangedRef.current
       );
+
+      // startNotifications() tells the peripheral to begin sending.
+      // Some devices also need at least one readValue() before notifications
+      // start arriving — call it first and use the result as the initial BPM.
+      try {
+        const initial = await characteristic.readValue();
+        const initialBpm = parseHeartRate(initial);
+        if (initialBpm > 0) setBpm(initialBpm);
+      } catch {
+        // Notify-only characteristics throw on read — safe to ignore
+      }
 
       await characteristic.startNotifications();
       setStatus("connected");
