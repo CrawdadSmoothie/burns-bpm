@@ -25,17 +25,17 @@ export const ZONE_CONFIG: Record<HeartZone, ZoneMeta> = {
   UnfilteredRage:      { label: "UNFILTERED RAGE",      category: "Redline", color: "#ff3b20", rgb: "255,59,32"   },
 };
 
-// BPM thresholds
-// < 90  → Chill
-// 90–114 → Vibing
-// 115–139 → Locked In
-// 140–149 → Bourbon Is Necessary
-// 150+  → UNFILTERED RAGE
+// BPM thresholds — tuned for seated gaming
+// < 80  → Chill
+// 80–94  → Vibing
+// 95–109 → Locked In
+// 110–124 → Bourbon Is Necessary
+// 125+  → UNFILTERED RAGE
 export function getRawIntensity(bpm: number): HeartZone {
-  if (bpm < 90)  return "Chill";
-  if (bpm < 115) return "Vibing";
-  if (bpm < 140) return "LockedIn";
-  if (bpm < 150) return "BourbonIsNecessary";
+  if (bpm < 80)  return "Chill";
+  if (bpm < 95)  return "Vibing";
+  if (bpm < 110) return "LockedIn";
+  if (bpm < 125) return "BourbonIsNecessary";
   return "UnfilteredRage";
 }
 
@@ -50,12 +50,12 @@ export const ZONE_MESSAGES: Record<HeartZone, string[]> = {
   UnfilteredRage:     ["What was that rotation?",      "Uninstall incoming",            "Smurfing detected",           "Somebody check on Burns"      ],
 };
 
-// Hysteresis: once in UNFILTERED RAGE (≥150), stay there until bpm drops to ≤147
+// Hysteresis: once in UNFILTERED RAGE (≥125), stay there until bpm drops to ≤122
 export function applyHysteresis(
   raw: HeartZone,
   current: HeartZone,
   bpm: number
 ): HeartZone {
-  if (current === "UnfilteredRage" && bpm > 147) return "UnfilteredRage";
+  if (current === "UnfilteredRage" && bpm > 122) return "UnfilteredRage";
   return raw;
 }

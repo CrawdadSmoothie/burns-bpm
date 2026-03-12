@@ -141,7 +141,7 @@ export default function BpmHero({ bpm }: { bpm: number }) {
 
   // ── Cooling down detection ────────────────────────────────────────────────
   // Tracks a rolling 10-tick BPM history. Triggers "Cooling Down" once when
-  // BPM drops ≥15 within ~8 seconds after a heated moment (was ≥140).
+  // BPM drops ≥12 within ~8 seconds after a heated moment (was ≥110).
   const bpmHistoryRef          = useRef<number[]>([]);
   const cooldownActiveRef      = useRef(false);
   const cooldownTimerRef       = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -164,8 +164,8 @@ export default function BpmHero({ bpm }: { bpm: number }) {
     const bpm8sAgo = hist[hist.length - 8];
     const now = Date.now();
     if (
-      bpm8sAgo >= 140 &&
-      bpm8sAgo - bpm >= 15 &&
+      bpm8sAgo >= 110 &&
+      bpm8sAgo - bpm >= 12 &&
       now - lastCooldownTriggerRef.current >= 15_000
     ) {
       lastCooldownTriggerRef.current = now;
@@ -185,7 +185,7 @@ export default function BpmHero({ bpm }: { bpm: number }) {
 
   // Continuous (non-debounced) scaling — drives smooth glow + flame
   const globalIntensity = Math.min(Math.max((bpm - BPM_MIN) / (BPM_MAX - BPM_MIN), 0), 1);
-  const flameIntensity  = isHot ? Math.min(Math.max((bpm - 140) / 60, 0), 1) : 0;
+  const flameIntensity  = isHot ? Math.min(Math.max((bpm - 110) / 40, 0), 1) : 0;
   const glowOpacity     = 0.06 + globalIntensity * 0.52;
   const glowBlur        = 24 + globalIntensity * 28;
 

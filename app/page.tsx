@@ -122,7 +122,7 @@ export default function Page() {
   const startTime   = points.length > 0 ? points[0].timestamp : null;
   const chartEvents = useMemo(() => extractChartEvents(points), [points]);
 
-  // ── UNFILTERED RAGE banner — fires once per session on first ≥150 crossing ─
+  // ── UNFILTERED RAGE banner — fires once per session on first ≥125 crossing ─
   const rageTriggeredRef    = useRef(false);
   const prevBpmRef          = useRef(0);
   const rageBannerTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,10 +135,10 @@ export default function Page() {
     prevBpmRef.current = 0;
   }, [sessionActive]);
 
-  // Detect first crossing from <150 → ≥150
+  // Detect first crossing from <125 → ≥125
   useEffect(() => {
     if (!sessionActive || rageTriggeredRef.current) return;
-    if (prevBpmRef.current < 150 && currentBpm >= 150) {
+    if (prevBpmRef.current < 125 && currentBpm >= 125) {
       rageTriggeredRef.current = true;
       setShowRageBanner(true);
       if (rageBannerTimerRef.current) clearTimeout(rageBannerTimerRef.current);

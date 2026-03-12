@@ -10,7 +10,7 @@ interface Props {
 }
 
 function zoneColor(peak: number): string {
-  if (peak >= 140) return "#e8705a";
+  if (peak >= 110) return "#e8705a";
   if (peak >= 120) return "#e8b84d";
   if (peak >= 90)  return "#5ab5e8";
   return "#7cc8a0";
@@ -18,7 +18,7 @@ function zoneColor(peak: number): string {
 
 function sessionEmoji(peak: number): string {
   if (peak >= 160) return "🔥";
-  if (peak >= 140) return "⚡";
+  if (peak >= 110) return "⚡";
   if (peak >= 120) return "💪";
   if (peak >= 100) return "🏃";
   return "😌";

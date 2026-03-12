@@ -43,15 +43,15 @@ const MARKER_PRIORITY: Record<ChartEventType, number> = {
 // ─── Zone gradient helpers ────────────────────────────────────────────────────
 
 const ZONE_THRESHOLDS = [
-  { bpm: 140, color: "#e8705a" }, // Redline / Intense boundary
-  { bpm: 120, color: "#e8b84d" }, // Intense / Engaged boundary
-  { bpm: 90,  color: "#5ab5e8" }, // Engaged / Calm boundary
+  { bpm: 110, color: "#e8705a" }, // Redline / Bourbon boundary
+  { bpm: 95,  color: "#e8b84d" }, // Locked In / Vibing boundary
+  { bpm: 80,  color: "#5ab5e8" }, // Vibing / Chill boundary
 ] as const;
 
 function zoneColor(bpm: number): string {
-  if (bpm >= 140) return "#e8705a";
-  if (bpm >= 120) return "#e8b84d";
-  if (bpm >= 90)  return "#5ab5e8";
+  if (bpm >= 110) return "#e8705a";
+  if (bpm >= 95)  return "#e8b84d";
+  if (bpm >= 80)  return "#5ab5e8";
   return "#7cc8a0";
 }
 
@@ -305,14 +305,14 @@ export default function SessionChart({ points, events = [], height = 208 }: Prop
               only occupies ~12% of chart height, keeping HR the dominant signal */}
           <YAxis yAxisId="db" domain={[0, 800]} hide width={0} />
 
-          {/* 140 bpm threshold line */}
-          {axisDomainMax >= 130 && (
+          {/* 110 bpm redline threshold */}
+          {axisDomainMax >= 100 && (
             <ReferenceLine
-              y={140}
+              y={110}
               stroke="rgba(232,112,90,0.25)"
               strokeDasharray="4 4"
               label={{
-                value:    "140",
+                value:    "110",
                 position: "insideTopRight",
                 fill:     "rgba(232,112,90,0.35)",
                 fontSize: 10,

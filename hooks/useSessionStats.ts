@@ -36,7 +36,7 @@ export function useSessionStats(points: HeartRatePoint[]): SessionStats {
       sum += p.bpm;
       if (p.bpm > peak) { peak = p.bpm; peakTs = p.timestamp; }
       if (p.bpm < low) low = p.bpm;
-      if (p.bpm > 140) above140++;
+      if (p.bpm > 110) above140++;
     }
 
     const startTs = points[0].timestamp;

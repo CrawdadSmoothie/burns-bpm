@@ -23,9 +23,9 @@ function formatTime(ts: number): string {
 }
 
 function zoneColor(bpm: number): string {
-  if (bpm >= 140) return "#e8705a";
-  if (bpm >= 120) return "#e8b84d";
-  if (bpm >= 90)  return "#5ab5e8";
+  if (bpm >= 110) return "#e8705a";
+  if (bpm >= 95)  return "#e8b84d";
+  if (bpm >= 80)  return "#5ab5e8";
   return "#7cc8a0";
 }
 
