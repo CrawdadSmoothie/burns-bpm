@@ -100,6 +100,7 @@ export function useBluetoothHeartRate(): BluetoothHeartRateResult {
 
       const device = await bluetooth.requestDevice({
         filters: [{ services: ["heart_rate"] }],
+        optionalServices: ["heart_rate"],
       });
       deviceRef.current = device;
 
@@ -110,8 +111,30 @@ export function useBluetoothHeartRate(): BluetoothHeartRateResult {
       };
       device.addEventListener("gattserverdisconnected", onDisconnectRef.current);
 
-      const server         = await device.gatt.connect();
-      const service        = await server.getPrimaryService("heart_rate");
+      // Some devices (especially chest straps like the Polar H9) drop the
+      // GATT connection between pairing and service discovery due to aggressive
+      // power-saving. Retry up to 3 times with a short delay between attempts.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let server: any = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let service: any = null;
+      const MAX_RETRIES = 3;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          if (!device.gatt.connected) {
+            server = await device.gatt.connect();
+          } else {
+            server = device.gatt;
+          }
+          service = await server.getPrimaryService("heart_rate");
+          break;
+        } catch (gattErr) {
+          if (attempt === MAX_RETRIES - 1) throw gattErr;
+          // Wait before retrying — gives the device time to stabilize
+          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        }
+      }
+
       const characteristic = await service.getCharacteristic("heart_rate_measurement");
       characteristicRef.current = characteristic;
 
